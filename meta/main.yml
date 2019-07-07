@@ -2,7 +2,7 @@
 dependencies: []
 
 galaxy_info:
-  author: Marvin Preuss
+  author: Marvin Steadfast
   description: prometheus node_exporter
   license: MIT
   min_ansible_version: 2.8
