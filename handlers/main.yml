@@ -1,0 +1,11 @@
+---
+- name: restart node_exporter
+  service:
+    name: node_exporter
+    state: restarted
+  become: true
+
+- name: daemon-reload
+  systemd:
+    daemon_reload: true
+  become: true

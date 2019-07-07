@@ -1,0 +1,84 @@
+---
+- name: remove node_exporter dist package
+  package:
+    name:
+      - prometheus-node-exporter
+    state: absent
+  become: true
+
+- name: install deps
+  package:
+    name:
+      - tar
+  become: true
+
+- name: check for node_exporter existance
+  stat:
+    path: /usr/local/bin/node_exporter
+  register: node_exporter_existance
+
+- name: check node_exporter version
+  command: /usr/local/bin/node_exporter --version
+  register: node_exporter_installed_version
+  changed_when: false
+  when: node_exporter_existance.stat.exists
+
+- name: set some facts
+  set_fact:
+    node_exporter_file_string: "node_exporter-{{ node_exporter_version }}.linux-{{ cpu_arch }}"
+
+- name: install node_exporter
+  block:
+    - name: get package
+      unarchive:
+        src: "https://github.com/prometheus/node_exporter/releases/download\
+          /v{{ node_exporter_version }}\
+          /{{ node_exporter_file_string }}.tar.gz"
+        dest: /tmp
+        remote_src: true
+    - name: remove old version
+      file:
+        path: /usr/local/bin/node_exporter
+        state: absent
+      when:
+        - node_exporter_installed_version is defined
+        - node_exporter_installed_version.stderr is defined
+        - node_exporter_version not in node_exporter_installed_version.stderr
+    - name: copy node_exporter
+      command: "cp /tmp/{{ node_exporter_file_string }}/node_exporter /usr/local/bin"
+      notify:
+        - restart node_exporter
+  become: true
+  when: "(not node_exporter_existance.stat.exists) or \
+    (node_exporter_installed_version is defined and node_exporter_version not in node_exporter_installed_version.stderr)"
+
+- name: remove install files
+  file:
+    path: "/tmp/{{ node_exporter_file_string }}"
+    state: absent
+  become: true
+
+- name: copy openrc init file
+  copy:
+    src: node_exporter.init
+    dest: /etc/init.d/node_exporter
+    mode: 0755
+  become: true
+  when: ansible_os_family == "Alpine"
+
+- name: copy systemd file
+  copy:
+    src: node_exporter.service
+    dest: /etc/systemd/system/node_exporter.service
+  become: true
+  when: ansible_os_family != "Alpine"
+  notify:
+    - daemon-reload
+    - restart node_exporter
+
+- name: enable service
+  service:
+    name: node_exporter
+    enabled: true
+    state: started
+  become: true

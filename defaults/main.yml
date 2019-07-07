@@ -1,0 +1,5 @@
+---
+# defaults file for node_exporter
+node_exporter_version: 0.18.1
+# possible values are: arm64, armv5, armv6, armv7, mips, mips64le, mipsle, ppc64, ppc64le, s390x
+cpu_arch: amd64

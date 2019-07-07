@@ -1,0 +1,75 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: alpine-3.9
+    image: alpine:3.9
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  - name: alpine-3.10
+    image: alpine:3.10
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  - name: alpine-edge
+    image: alpine:edge
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  - name: debian
+    image: debian:stretch
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+  - name: ubuntu
+    image: ubuntu:bionic
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+  - name: centos
+    image: centos:7
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ../resources/playbooks/playbook.yml
+  lint:
+    name: ansible-lint
+verifier:
+  name: testinfra
+  directory: ../resources/tests
+  lint:
+    name: flake8

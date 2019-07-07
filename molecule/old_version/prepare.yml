@@ -1,0 +1,17 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: install deps
+      package:
+        name:
+          - tar
+      become: true
+    - name: install old version
+      unarchive:
+        src: https://github.com/prometheus/node_exporter/releases/download/v0.17.0/node_exporter-0.17.0.linux-amd64.tar.gz
+        dest: /tmp
+        remote_src: true
+    - name: copy node_exporter
+      command: cp /tmp/node_exporter-0.17.0.linux-amd64/node_exporter /usr/local/bin/node_exporter
+      become: true

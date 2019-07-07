@@ -1,0 +1,44 @@
+---
+kind: pipeline
+name: testing
+workspace:
+  base: /code
+  path: ansible-vwit-node_exporter
+steps:
+  - name: testing
+    image: hub.ckc.de/vwit-infrastructure/ansible
+    pull: always
+    environment:
+      ANSIBLE_FORCE_COLOR: True
+      PY_COLORS: 1
+    volumes:
+      - name: docker_sock
+        path: /var/run/docker.sock
+    commands:
+      - sh .drone.sh
+volumes:
+  - name: docker_sock
+    host:
+      path: /var/run/docker.sock
+image_pull_secrets:
+  - dockerconfigjson
+---
+kind: pipeline
+name: trigger rollout
+steps:
+  - name: trigger
+    image: plugins/downstream
+    settings:
+      server: https://drone.ckc.de
+      token:
+        from_secret: drone_token
+      fork: true
+      repositories:
+        - vwit-infrastructure/vwit-rollout
+trigger:
+  status:
+    - success
+  branch:
+    - master
+depends_on:
+  - testing
